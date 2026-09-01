@@ -5,23 +5,21 @@ import Product from "../models/Product.js";
 // Admin only
 export const createProduct = async (req, res) => {
   try {
-    // Only allow these fields to be supplied by the client.
     const {
       name,
       description,
       price,
       stockQuantity,
-      image,
-      isActive,
     } = req.body;
+
+    const imageUrl = req.file ? req.file.path : "";
 
     const product = await Product.create({
       name,
       description,
       price,
       stockQuantity,
-      image,
-      isActive,
+      imageUrl,
     });
 
     return res.status(201).json({
@@ -31,8 +29,10 @@ export const createProduct = async (req, res) => {
   } catch (error) {
     console.error("Create product error:", error);
 
-    // Mongoose validation errors are client/input errors.
-    if (error.name === "ValidationError" || error.name === "CastError") {
+    if (
+      error.name === "ValidationError" ||
+      error.name === "CastError"
+    ) {
       return res.status(400).json({
         success: false,
         message: error.message,
@@ -50,14 +50,11 @@ export const createProduct = async (req, res) => {
 // Admin only
 export const updateProduct = async (req, res) => {
   try {
-    // Only allow these fields to be updated.
     const {
       name,
       description,
       price,
       stockQuantity,
-      image,
-      isActive,
     } = req.body;
 
     const updates = {
@@ -65,9 +62,12 @@ export const updateProduct = async (req, res) => {
       description,
       price,
       stockQuantity,
-      image,
-      isActive,
     };
+
+    // Only replace the image if a new image was uploaded.
+    if (req.file) {
+      updates.imageUrl = req.file.path;
+    }
 
     const product = await Product.findByIdAndUpdate(
       req.params.id,
@@ -92,7 +92,10 @@ export const updateProduct = async (req, res) => {
   } catch (error) {
     console.error("Update product error:", error);
 
-    if (error.name === "ValidationError" || error.name === "CastError") {
+    if (
+      error.name === "ValidationError" ||
+      error.name === "CastError"
+    ) {
       return res.status(400).json({
         success: false,
         message: error.message,
@@ -141,8 +144,7 @@ export const deleteProduct = async (req, res) => {
 };
 
 // GET /api/products
-// Public
-// Only active products are returned.
+// Public — active products only
 export const getProducts = async (req, res) => {
   try {
     const products = await Product.find({
@@ -165,8 +167,7 @@ export const getProducts = async (req, res) => {
 };
 
 // GET /api/products/:id
-// Public
-// Only active products can be viewed.
+// Public — active products only
 export const getProduct = async (req, res) => {
   try {
     const product = await Product.findOne({
