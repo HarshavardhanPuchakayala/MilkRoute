@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { getProducts } from "../api/products";
+import { useCart } from "../context/CartContext";
 
 const Catalog = () => {
   const [products, setProducts] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -48,10 +51,7 @@ const Catalog = () => {
   const handleAddToCart = (product) => {
     const quantity = quantities[product._id] || 1;
 
-    console.log("Add to cart:", {
-      productId: product._id,
-      quantity,
-    });
+    addToCart(product, quantity);
   };
 
   if (loading) {
@@ -88,10 +88,7 @@ const Catalog = () => {
           return (
             <article key={product._id}>
               {product.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                />
+                <img src={product.imageUrl} alt={product.name} />
               ) : (
                 <div>No image available</div>
               )}

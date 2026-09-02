@@ -1,6 +1,5 @@
 import {  Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-
+import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -15,6 +14,7 @@ function App() {
   <Route path="/signup" element={<Signup />} />
   <Route path="/not-authorized" element={<NotAuthorized />} />
 <Route path="/" element={<Catalog />} />
+  <Route path="/cart" element={<Cart />} />
   <Route element={<ProtectedRoute />}>
  
   </Route>
