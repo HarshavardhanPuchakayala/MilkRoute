@@ -7,6 +7,7 @@ import {
   deleteProduct,
   getProduct,
   getProducts,
+    getAllProducts,
 } from "../controllers/productController.js";
 
 import { protect } from "../middleware/auth.js";
@@ -20,7 +21,8 @@ const router = express.Router();
 // ========================================
 
 router.get("/", getProducts);
-
+// Admin
+router.get("/admin", protect, requireAdmin, getAllProducts);
 router.get("/:id", getProduct);
 
 // ========================================

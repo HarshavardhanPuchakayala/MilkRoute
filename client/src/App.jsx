@@ -11,6 +11,10 @@ import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import MyOrders from "./pages/MyOrder";
 import NotAuthorized from "./pages/NotAuthorized";
+
+import AdminRoute from "./components/AdminRoute";
+import AdminProducts from "./pages/AdminProducts";
+import AdminOrders from "./pages/AdminOrders";
 function App() {
   return (
 <>
@@ -32,8 +36,12 @@ function App() {
                 path="/order-success"
                 element={<OrderSuccess />}
               />
+              <Route path="/my-orders" element={<MyOrders />} />
             </Route>
-             <Route path="/my-orders" element={<MyOrders />} />
+             
+             <Route element={<AdminRoute />}>
+                 <Route path="/admin/products" element={<AdminProducts />} />
+              </Route>
 </Routes>
 </>
   );
