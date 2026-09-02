@@ -1,26 +1,34 @@
 import {  Routes, Route } from "react-router-dom";
-import Cart from "./pages/Cart";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import ProtectedRoute from "./components/ProtectedRoute";
-import NotAuthorized from "./pages/NotAuthorized";
-import AdminRoute from "./components/AdminRoute";
 import Catalog from "./pages/Catalog";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import OrderSuccess from "./pages/OrderSuccess";
+import NotAuthorized from "./pages/NotAuthorized";
 function App() {
   return (
 
 <Routes>
-  <Route path="/login" element={<Login />} />
-  <Route path="/signup" element={<Signup />} />
-  <Route path="/not-authorized" element={<NotAuthorized />} />
-<Route path="/" element={<Catalog />} />
-  <Route path="/cart" element={<Cart />} />
-  <Route element={<ProtectedRoute />}>
- 
-  </Route>
+            <Route path="/" element={<Catalog />} />
+            <Route path="/cart" element={<Cart />} />
 
-  <Route element={<AdminRoute />}>
-  </Route>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/not-authorized"
+              element={<NotAuthorized />}
+            />
+
+            <Route element={<ProtectedRoute />}>
+              <Route path="/checkout" element={<Checkout />} />
+              <Route
+                path="/order-success"
+                element={<OrderSuccess />}
+              />
+            </Route>
 </Routes>
   );
 }
