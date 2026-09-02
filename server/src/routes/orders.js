@@ -11,13 +11,11 @@ import { requireAdmin } from "../middleware/requireAdmin.js";
 
 const router = express.Router();
 
-// Customer: own order history
 router.get("/mine", protect, getMyOrders);
 
-// Admin: all orders
+
 router.get("/", protect, requireAdmin, getAllOrders);
 
-// Customer: create order
 router.post("/", protect, createOrder);
 
 export default router;
