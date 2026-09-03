@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { createOrder } from "../api/orders";
+import { createOrder,createPaymentOrder } from "../api/orders";
 
 const Checkout = () => {
   const { cart, cartTotal, clearCart } = useCart();
@@ -10,40 +10,62 @@ const Checkout = () => {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState("");
 
-  const handlePlaceOrder = async () => {
-    if (cart.length === 0) {
-      return;
-    }
+const handlePlaceOrder = async () => {
+  if (cart.length === 0) return;
 
-    try {
-      setPlacingOrder(true);
-      setError("");
+  try {
+    setPlacingOrder(true);
+    setError("");
 
-      const items = cart.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-      }));
+    const items = cart.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    }));
 
-      const data = await createOrder(items);
+    const { order } = await createOrder(items);
 
-      clearCart();
+    const paymentData = await createPaymentOrder(order._id);
 
-      navigate("/order-success", {
-        state: {
-          order: data.order,
+    const options = {
+      key: paymentData.keyId,
+      amount: paymentData.amount,
+      currency: paymentData.currency,
+      order_id: paymentData.razorpayOrderId,
+      name: "MilkRoute",
+      description: `Order #${order._id.slice(-8)}`,
+
+      handler: function () {
+        // Only a client-side success signal.
+        // Webhook is the actual payment confirmation.
+        clearCart();
+
+        navigate("/order-success", {
+          state: { order },
+        });
+      },
+
+      modal: {
+        ondismiss: function () {
+          setError("Payment was not completed. You can try again.");
+          setPlacingOrder(false);
         },
-      });
-    } catch (error) {
-      console.error("Failed to place order:", error);
+      },
+    };
 
-      setError(
-        error.response?.data?.message ||
-          "Failed to place order. Please try again."
-      );
-    } finally {
-      setPlacingOrder(false);
-    }
-  };
+    const razorpay = new window.Razorpay(options);
+
+    razorpay.open();
+  } catch (error) {
+    console.error("Failed to place order:", error);
+
+    setError(
+      error.response?.data?.message ||
+        "Failed to place order. Please try again."
+    );
+
+    setPlacingOrder(false);
+  }
+};
 
   if (cart.length === 0) {
     return (
