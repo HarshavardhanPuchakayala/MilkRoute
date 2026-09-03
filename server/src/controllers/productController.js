@@ -1,5 +1,6 @@
 
 import Product from "../models/Product.js";
+import { uploadToCloudinary } from "../middleware/upload.js";
 
 // POST /api/products
 // Admin only
@@ -12,7 +13,12 @@ export const createProduct = async (req, res) => {
       stockQuantity,
     } = req.body;
 
-    const imageUrl = req.file ? req.file.path : "";
+    let imageUrl = "";
+
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      imageUrl = result.secure_url;
+    }
 
     const product = await Product.create({
       name,
@@ -66,7 +72,8 @@ export const updateProduct = async (req, res) => {
 
     // Only replace the image if a new image was uploaded.
     if (req.file) {
-      updates.imageUrl = req.file.path;
+      const result = await uploadToCloudinary(req.file.buffer);
+      updates.imageUrl = result.secure_url;
     }
 
     const product = await Product.findByIdAndUpdate(

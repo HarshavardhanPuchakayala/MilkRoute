@@ -45,11 +45,26 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    status: {
-      type: String,
-      enum: ["pending", "confirmed"],
-      default: "pending",
-    },
+status: {
+  type: String,
+  enum: ["pending_payment", "confirmed", "cancelled"],
+  default: "pending_payment",
+},
+paymentStatus: {
+  type: String,
+  enum: ["pending", "paid", "failed"],
+  default: "pending",
+},
+razorpayOrderId: {
+  type: String,
+},
+razorpayPaymentId: {
+  type: String,
+},
+expiresAt: {
+  type: Date,
+  required: true,
+},
   },
   {
     timestamps: true,

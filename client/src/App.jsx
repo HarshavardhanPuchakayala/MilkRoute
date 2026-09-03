@@ -14,35 +14,35 @@ import NotAuthorized from "./pages/NotAuthorized";
 
 import AdminRoute from "./components/AdminRoute";
 import AdminProducts from "./pages/AdminProducts";
-import AdminOrders from "./pages/AdminOrders";
+import AdminOrders from "./pages/Adminoders";
 function App() {
   return (
 <>
 <Navbar/>
-<Routes>
+ <Routes>
             <Route path="/" element={<Catalog />} />
             <Route path="/cart" element={<Cart />} />
-
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route
-              path="/not-authorized"
-              element={<NotAuthorized />}
-            />
+            <Route path="/not-authorized" element={<NotAuthorized />} />
 
             <Route element={<ProtectedRoute />}>
               <Route path="/checkout" element={<Checkout />} />
-              <Route
-                path="/order-success"
-                element={<OrderSuccess />}
-              />
+              <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/my-orders" element={<MyOrders />} />
             </Route>
-             
-             <Route element={<AdminRoute />}>
-                 <Route path="/admin/products" element={<AdminProducts />} />
-              </Route>
-</Routes>
+
+            <Route element={<AdminRoute />}>
+              <Route
+                path="/admin/products"
+                element={<AdminProducts />}
+              />
+              <Route
+                path="/admin/orders"
+                element={<AdminOrders />}
+              />
+            </Route>
+          </Routes>
 </>
   );
 }

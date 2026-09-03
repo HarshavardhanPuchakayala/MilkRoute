@@ -2,7 +2,7 @@
 import mongoose from "mongoose";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
-
+import razorpay from "../config/razorpay.js";
 export const createOrder = async (req, res) => {
   const session = await mongoose.startSession();
 
@@ -62,13 +62,17 @@ export const createOrder = async (req, res) => {
       totalAmount += product.price * quantity;
     }
 
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
     const [order] = await Order.create(
       [
         {
           userId: req.user._id,
           items: orderItems,
           totalAmount,
-          status: "pending",
+          status: "pending_payment",
+          paymentStatus: "pending",
+          expiresAt,
         },
       ],
       {
@@ -133,5 +137,42 @@ export const getAllOrders = async (req, res) => {
       success: false,
       message: "Failed to fetch orders",
     });
+  }
+};
+
+export const createPaymentOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findOne({ _id: orderId, userId: req.user._id });
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    if (order.paymentStatus !== "pending") {
+      return res.status(400).json({ success: false, message: "This order is not awaiting payment" });
+    }
+
+    // Razorpay expects amount in the smallest currency unit — paise, not rupees
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Math.round(order.totalAmount * 100),
+      currency: "INR",
+      receipt: order._id.toString(),
+    });
+
+    order.razorpayOrderId = razorpayOrder.id;
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      keyId: process.env.RAZORPAY_KEY_ID, // frontend needs this to open the checkout widget
+    });
+  } catch (error) {
+    console.error("Create payment order error:", error);
+    res.status(500).json({ success: false, message: "Failed to create payment order" });
   }
 };
