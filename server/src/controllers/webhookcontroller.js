@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import Subscription from "../models/Subscription.js";
 
 export const handleRazorpayWebhook = async (req, res) => {
   try {
@@ -76,6 +77,83 @@ export const handleRazorpayWebhook = async (req, res) => {
         throw error;
       } finally {
         await session.endSession();
+      }
+    }
+if (event.event === "subscription.charged") {
+  const razorpaySubscription = event.payload.subscription.entity;
+
+  const subscription = await Subscription.findOne({
+    razorpaySubscriptionId: razorpaySubscription.id,
+  });
+
+  if (!subscription) {
+    console.warn(
+      `Subscription not found for Razorpay subscription: ${razorpaySubscription.id}`
+    );
+  } else {
+    subscription.nextBillingDate = razorpaySubscription.charge_at
+      ? new Date(razorpaySubscription.charge_at * 1000)
+      : null;
+
+    await subscription.save();
+  }
+}
+
+if (event.event === "subscription.halted") {
+  const razorpaySubscription = event.payload.subscription.entity;
+
+  const subscription = await Subscription.findOne({
+    razorpaySubscriptionId: razorpaySubscription.id,
+  });
+
+  if (!subscription) {
+    console.warn(
+      `Subscription not found for Razorpay subscription: ${razorpaySubscription.id}`
+    );
+  } else if (subscription.status === "cancelled") {
+    console.log(
+      `Ignoring halted webhook for already cancelled subscription: ${razorpaySubscription.id}`
+    );
+  } else {
+    subscription.status = "halted";
+    subscription.nextBillingDate = null;
+    await subscription.save();
+  }
+}
+
+if (event.event === "subscription.cancelled") {
+  const razorpaySubscription = event.payload.subscription.entity;
+
+  const subscription = await Subscription.findOne({
+    razorpaySubscriptionId: razorpaySubscription.id,
+  });
+
+  if (!subscription) {
+    console.warn(
+      `Subscription not found for Razorpay subscription: ${razorpaySubscription.id}`
+    );
+  } else if (subscription.status === "cancelled") {
+    console.log(`Subscription already cancelled: ${razorpaySubscription.id}`);
+  } else {
+    subscription.status = "cancelled";
+    subscription.pausedAt = null;
+    await subscription.save();
+  }
+}
+
+    // Subscription activation
+    if (event.event === "subscription.activated") {
+      const razorpaySubscriptionId =
+        event.payload.subscription.entity.id;
+
+      const subscription = await Subscription.findOne({
+        razorpaySubscriptionId,
+        status: "pending",
+      });
+
+      if (subscription) {
+        subscription.status = "active";
+        await subscription.save();
       }
     }
 

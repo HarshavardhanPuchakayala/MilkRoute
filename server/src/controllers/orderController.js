@@ -2,7 +2,7 @@
 import mongoose from "mongoose";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
-import razorpay from "../config/razorpay.js";
+// import razorpay from "../config/razorpay.js";
 export const createOrder = async (req, res) => {
   const session = await mongoose.startSession();
 
